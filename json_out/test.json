@@ -1,0 +1,19 @@
+{
+	"headers": {
+		"columns": {
+			"B1": "city",
+			"C1": "pop"
+		},
+		"rows": {
+			"A2": "nsw",
+			"A3": "vic"
+		}
+	},
+	"data": {
+		"nsw,vic": {
+			"city": "sydney",
+			"pop": "4391674",
+			"undefined": "3999982"
+		}
+	}
+}

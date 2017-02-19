@@ -8,15 +8,13 @@ console.log('starting app')
 let workbook = XL.readFile(__dirname + '/spreadsheets_in/' + filename)
 let sheetnames = Object.keys(workbook.Sheets)
 let firstSheet = workbook.Sheets[sheetnames[0]]
+console.log(firstSheet)
 
 const columnHeader = {
 	headerRow: '1',
 	headerColumn: 'A',
 	columns: 'abcdefghijklmnopqrstuvwxyz'.toUpperCase().split('')
 }
-
-console.log(firstSheet)
-
 
 const cellIsHeaderRow = cell => {
 	return cell[1] === columnHeader.headerRow
@@ -44,6 +42,8 @@ const getRowHeaderValues = sheet => {
 	},{})
 }
 
+
+
 const getRowData = sheet => {
 	let cells = Object.keys(sheet)
 	let dataCellKeys = cells.filter( cell => {
@@ -51,33 +51,78 @@ const getRowData = sheet => {
 		return isNotHeader ? true : false
 	})
 	console.log('\ndataCellKeys', dataCellKeys)
-	let rowHeads = Object.keys(getRowHeaderValues(sheet)).map(row => getRowHeaderValues(sheet)[row])
-	let columnHeads = Object.keys(getColumnHeaderValues(sheet)).map(column => getColumnHeaderValues(sheet)[column])
-	console.log('rows', rowHeads, 'columns', columnHeads)
 
 
-	let update = dataCellKeys.reduce( (data, cell, i) => {
-		console.log('\ndata', data)
-		console.log('cell', parseInt(cell[1]))
-		let rowKey = rowHeads
-		let columnKey = columnHeads[i]
+	let rowHeads = getRowHeaderValues(sheet)
+	let columnHeads = getColumnHeaderValues(sheet)
+
+	/*let rowHeads = Object.keys(getRowHeaderValues(sheet)).reduce(
+		(update, row) => {
+			console.log(getRowHeaderValues(sheet))
+			let value = getRowHeaderValues(sheet)[row]
+			update[row] = value
+			return update
+		}, {} 
+	)*/
+
+	/*let columnHeads = Object.keys(getColumnHeaderValues(sheet)).map(
+		column => getColumnHeaderValues(sheet)[column])*/
+
+	/*let columnHeads = Object.keys(getColumnHeaderValues(sheet)).reduce(
+		(update, column) => {
+			let value = getColumnHeaderValues(sheet)[column]
+			update[column] = value
+			return update
+		}, {} 
+	)*/
+
+	
+	console.log('\nrows', rowHeads, '\ncolumns', columnHeads)
+
+
+	let dataToReturn = dataCellKeys.reduce( (data, cell, i) => {
+		console.log('\n\ndata', data)
+		console.log('cell', cell)
+		let cellKey = {
+			letter: cell.split('').filter( character => !parseInt(character) ).join(''),
+			number: parseInt(cell.split('').filter( character => !!parseInt(character) ).join(''))
+		}
+		console.log('cell key', cellKey)
+		let rowKey = Object.keys(rowHeads)
+			.map( row => {
+				let headAsArray = row.split('')
+				let headNumbers = headAsArray.filter( node => !!parseInt(node) )
+				return parseInt(headNumbers.join(''))
+			})
+			.filter( number => {
+				return number === cellKey.number
+			})
+			.join('')
+
+		let columnKey = Object.keys(columnHeads)
+			.map( column => column.split('')[0] )
+			.filter( col => col === cellKey.letter )
+			.join('')
+
 		console.log(
 			'rowKey', rowKey,
 			'\ncolumnKey', columnKey
 		)
-		if( !!data[rowKey] ){
-			data[rowKey][columnKey] = sheet[cell].w	
+		console.log('contructing json', columnHeads, '\n')
+		if( !!data[rowHeads[ 'A' + cellKey.number ]] ){
+			data[rowHeads[ 'A' + cellKey.number ]][columnHeads[columnKey + '1']] = sheet[cell].w	
 		} else {
-			data[rowKey] = {
-				[columnKey]: sheet[cell].w
+			data[rowHeads[ 'A' + cellKey.number ]] = {
+				[columnHeads[columnKey + '1']]: sheet[cell].w
 			}
 		}
 
 		return data
 	}, {} )
 
-	return update
+	return dataToReturn
 }
+
 
 
 const jsonData = {
@@ -89,4 +134,8 @@ const jsonData = {
 }
 console.log('\njsonData:', JSON.stringify(jsonData,'utf8', 2))
 
-fs.writeFile(__dirname +'/json_out/test.json', JSON.stringify(jsonData, 'utf8', '\t'), err => !!err ? console.log(err) : true)
+
+fs.writeFile(__dirname +'/json_out/test.json', 
+	JSON.stringify(jsonData, 'utf8', '\t'), 
+	err => !!err ? console.log(err) : true
+)

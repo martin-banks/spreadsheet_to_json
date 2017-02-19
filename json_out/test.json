@@ -10,10 +10,13 @@
 		}
 	},
 	"data": {
-		"nsw,vic": {
+		"nsw": {
 			"city": "sydney",
-			"pop": "4391674",
-			"undefined": "3999982"
+			"pop": "4391674"
+		},
+		"vic": {
+			"city": "melbourne",
+			"pop": "3999982"
 		}
 	}
 }

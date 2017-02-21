@@ -1,7 +1,7 @@
 const XL = require('xlsx')
 const fs = require('fs')
 
-const filename = 'sample.xlsx'
+const filename = 'market_test.xlsx'
 
 console.log('starting app')
 
@@ -56,27 +56,7 @@ const getRowData = sheet => {
 	let rowHeads = getRowHeaderValues(sheet)
 	let columnHeads = getColumnHeaderValues(sheet)
 
-	/*let rowHeads = Object.keys(getRowHeaderValues(sheet)).reduce(
-		(update, row) => {
-			console.log(getRowHeaderValues(sheet))
-			let value = getRowHeaderValues(sheet)[row]
-			update[row] = value
-			return update
-		}, {} 
-	)*/
 
-	/*let columnHeads = Object.keys(getColumnHeaderValues(sheet)).map(
-		column => getColumnHeaderValues(sheet)[column])*/
-
-	/*let columnHeads = Object.keys(getColumnHeaderValues(sheet)).reduce(
-		(update, column) => {
-			let value = getColumnHeaderValues(sheet)[column]
-			update[column] = value
-			return update
-		}, {} 
-	)*/
-
-	
 	console.log('\nrows', rowHeads, '\ncolumns', columnHeads)
 
 
@@ -84,8 +64,12 @@ const getRowData = sheet => {
 		console.log('\n\ndata', data)
 		console.log('cell', cell)
 		let cellKey = {
-			letter: cell.split('').filter( character => !parseInt(character) ).join(''),
-			number: parseInt(cell.split('').filter( character => !!parseInt(character) ).join(''))
+			letter: cell.split('')
+				.filter( character => !parseInt(character) )
+				.join(''),
+			number: parseInt(cell.split('')
+				.filter( character => !!parseInt(character) )
+				.join(''))
 		}
 		console.log('cell key', cellKey)
 		let rowKey = Object.keys(rowHeads)
@@ -94,13 +78,15 @@ const getRowData = sheet => {
 				let headNumbers = headAsArray.filter( node => !!parseInt(node) )
 				return parseInt(headNumbers.join(''))
 			})
-			.filter( number => {
-				return number === cellKey.number
-			})
+			.filter( number => number === cellKey.number )
 			.join('')
 
 		let columnKey = Object.keys(columnHeads)
-			.map( column => column.split('')[0] )
+			.map( column => {
+				let headAsArray = column.split('')
+				let headLetters = headAsArray.filter( character => !parseInt(character) )
+				return headLetters.join('')
+			} )
 			.filter( col => col === cellKey.letter )
 			.join('')
 
@@ -124,8 +110,13 @@ const getRowData = sheet => {
 }
 
 
+const timeStamp = ()=>{
+	let date = new Date()
+	return `${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}_${date.getHours()}-${date.getMinutes()}`
+}
 
 const jsonData = {
+	prcessed_on: timeStamp(),
 	headers: {
 		columns: getColumnHeaderValues(firstSheet),
 		rows: getRowHeaderValues(firstSheet)
@@ -135,7 +126,7 @@ const jsonData = {
 console.log('\njsonData:', JSON.stringify(jsonData,'utf8', 2))
 
 
-fs.writeFile(__dirname +'/json_out/test.json', 
+fs.writeFile(__dirname + `/json_out/${filename.split('.')[0]}_${timeStamp()}.json`, 
 	JSON.stringify(jsonData, 'utf8', '\t'), 
 	err => !!err ? console.log(err) : true
 )
